@@ -9,10 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "yargs": "^14.0.0"
+    "esm": "^3.2.25"
   },
   "devDependencies": {
     "webpack": "^4.40.2",
-    "webpack-cli": "^3.3.9"
+    "webpack-cli": "^3.3.9",
+    "yargs": "^14.0.0"
   }
 }
