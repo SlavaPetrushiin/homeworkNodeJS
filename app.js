@@ -1,13 +1,15 @@
 const fs = require("fs");
 const path = require("path");
 
+const destinations = [];
+
 if(process.argv.length <= 2){
-	console.log("Usage: " + __filename + " path/to");
 	process.exit(-1);	
 }
 
 let base = process.argv[2]; //имя директории
 let outFolder = process.argv[3] || 'outResult'; //конечная папка
+let deleteFolder = process.argv[4] || false; 
 
 //Создание папки вывода
 function resultFolder(folder){
@@ -22,15 +24,15 @@ function resultFolder(folder){
 
 resultFolder(outFolder);
 
-function copyFile(source, file, cb) {
+function copyFile(source, destination, cb) {
   let cbCalled = false;
 
 	let rd = fs.createReadStream(source);
   rd.on("error", err => done (err));
 
-  let wr = fs.createWriteStream(path.join(newFolderFiles(file), file)); 
+  let wr = fs.createWriteStream(destination);
   wr.on("error", err => done (err))
-    .on("close", () => unLinkFile(source));
+    .on("close", () => done(null));
 
   rd.pipe(wr);
 
@@ -42,38 +44,14 @@ function copyFile(source, file, cb) {
   }
 }
 
-//Удаление файла
-function unLinkFile(file){
-	fs.unlink(file, err => {
-		if (err) {
-			console.log(err);
-		} else {
-			console.log("Файл удалён");
-		}		
-	})
-}
-//Удаление папки
-/*function unLinkFolder(folder){
-	fs.rmdir(folder, err => {
-		if (err) {
-			console.log(err);
-		} else {
-			console.log("Папка удалена");
-		}		
-	})
-}*/
-
 //Создание именованных папок
-function newFolderFiles(file){
-	let localBaseFile = path.join(__dirname, outFolder, file.charAt(0));
-	try {
-		if(!fs.existsSync(localBaseFile)){
-			fs.mkdirSync(localBaseFile);
-		}
-	} catch (err) {
-		console.error(err);
+function newFolderFiles(fileName){
+	let localBaseFile = path.join(__dirname, outFolder, fileName.base.charAt(0));
+	if(!destinations.includes(localBaseFile)){
+		destinations.push(localBaseFile);
+		fs.mkdirSync(localBaseFile);
 	}
-	return localBaseFile;	
+	return localBaseFile;
 }
 
 const walk = function(dir, callbackOnFile, callbackOnFolder, done) {
@@ -83,7 +61,7 @@ const walk = function(dir, callbackOnFile, callbackOnFolder, done) {
     const next = function(doneList) {
       if (err) return doneList(err);
 			
-			let filePath = list[i++]; //получаю первый элемент массива
+			let filePath = list[i++];
 
       if (!filePath) return doneList(null);
 
@@ -114,16 +92,27 @@ const walk = function(dir, callbackOnFile, callbackOnFolder, done) {
 walk(
   base,
   (filePath, cb) => {
-		console.log("File: ", filePath);
-		let fileName = path.parse(filePath); //Метод path.parse() возвращает объект, чьи свойства представляют собой  элементы пути.
-		copyFile(filePath, fileName.base, err => {
-			console.log('done', err)
+		let fileName = path.parse(filePath);
+		let destination = newFolderFiles( fileName);
+		copyFile(filePath, path.join(destination, fileName.base), err => {
+			if (err){
+				return cb(err);
+			}
+			if(deleteFolder){
+				fs.unlink(filePath, err => {
+					cb(err);				
+				})
+			} else {
+				cb(err);
+			}
 		})
-
-    cb();
   },
   dir => {
-		console.log("Directory: ", dir);
+		if(deleteFolder){
+			fs.rmdir(dir, err => {
+				console.log("Error: ", err);
+			})
+		}
   },
   err => {
     console.log("Error: ", err);
