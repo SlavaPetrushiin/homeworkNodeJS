@@ -1,8 +1,10 @@
 const fs = require("fs");
 const path = require("path");
-import copyFile from './copyFile';
+const util = require("util");
+import copyFile from './copyFile.js';
 import newFolderFiles from './newFolderFiles.js';
 import walk from './walk.js';
+const unlink = util.promisify(fs.unlink);
 
 const destinations = [];
 
@@ -15,16 +17,22 @@ let outFolder = process.argv[3] || 'outResult'; //конечная папка
 let deleteFolder = process.argv[4] || false; 
 
 function resultFolder(folder){
-	try {
+	return new Promise((resolve, reject) => {
 		if (!fs.existsSync(folder)){
-			fs.mkdirSync(folder);
+			resolve(folder);
 		}
-	} catch (err) {
-		console.error(err);
-	}
+	})
 }
 
-resultFolder(outFolder);
+const resFolder = resultFolder(outFolder);
+
+resFolder
+	.then(data => {
+			fs.mkdirSync(data);
+	})
+	.catch(err => {
+		console.error(err);
+	})
 
 walk(
   base,
@@ -36,9 +44,10 @@ walk(
 				return cb(err);
 			}
 			if(deleteFolder){
-				fs.unlink(filePath, err => {
-					cb(err);				
-				})
+				unlink(filePath)
+					.then(err => {
+						cb(err);				
+					})
 			} else {
 				cb(err);
 			}
@@ -55,4 +64,6 @@ walk(
     console.log("Error: ", err);
   }
 );
+
+
 
