@@ -4,7 +4,12 @@ const util = require("util");
 import copyFile from './copyFile.js';
 import newFolderFiles from './newFolderFiles.js';
 import walk from './walk.js';
+
 const unlink = util.promisify(fs.unlink);
+const rmdir = util.promisify(fs.rmdir);
+const existsSync = util.promisify(fs.existsSync);
+const mkdirSync = util.promisify(fs.mkdirSync);
+
 
 const destinations = [];
 
@@ -27,12 +32,10 @@ function resultFolder(folder){
 const resFolder = resultFolder(outFolder);
 
 resFolder
-	.then(data => {
-			fs.mkdirSync(data);
-	})
-	.catch(err => {
-		console.error(err);
-	})
+	.then(data => fs.mkdirSync(data))
+	.catch(err => console.error(err))
+
+
 
 walk(
   base,
@@ -55,7 +58,8 @@ walk(
   },
   dir => {
 		if(deleteFolder){
-			fs.rmdir(dir, err => {
+			rmdir(dir)
+				.catch( err => {
 				console.log("Error: ", err);
 			})
 		}

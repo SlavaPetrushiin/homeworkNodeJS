@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const readdir = util.promisify(fs.readdir);
 
 export default function walk (dir, callbackOnFile, callbackOnFolder, done) {
   fs.readdir(dir, (err, list) => {
