@@ -35,6 +35,14 @@ resFolder
 	.then(data => fs.mkdirSync(data))
 	.catch(err => console.error(err))
 
+/*existsSync(outFolder)
+	.then(res => {
+		if(!res){
+			return mkdirSync(outFolder)
+		}
+	})
+	.catch(err => console.error(err))*/
+
 
 
 walk(
