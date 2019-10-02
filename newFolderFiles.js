@@ -8,6 +8,7 @@ export default function newFolderFiles(destinations, outFolder, fileName){
 	if(!destinations.includes(localBaseFile)){
 		destinations.push(localBaseFile);
 		mkdirSync(localBaseFile)
+			.then(() => resolve())
 			.catch(err => console.log(err))
 	}
 	return localBaseFile;

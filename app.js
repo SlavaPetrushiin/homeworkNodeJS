@@ -7,9 +7,8 @@ import walk from './walk.js';
 
 const unlink = util.promisify(fs.unlink);
 const rmdir = util.promisify(fs.rmdir);
-const existsSync = util.promisify(fs.existsSync);
-const mkdirSync = util.promisify(fs.mkdirSync);
-
+const mkdir = util.promisify(fs.mkdir);
+const exists = util.promisify(fs.exists);
 
 const destinations = [];
 
@@ -21,61 +20,40 @@ let base = process.argv[2]; //имя директории
 let outFolder = process.argv[3] || 'outResult'; //конечная папка
 let deleteFolder = process.argv[4] || false; 
 
-function resultFolder(folder){
-	return new Promise((resolve, reject) => {
-		if (!fs.existsSync(folder)){
-			resolve(folder);
+exists(outFolder)
+	.then(data => {
+		if (!data){
+			mkdir(outFolder);
 		}
 	})
-}
-
-const resFolder = resultFolder(outFolder);
-
-resFolder
-	.then(data => fs.mkdirSync(data))
-	.catch(err => console.error(err))
-
-/*existsSync(outFolder)
-	.then(res => {
-		if(!res){
-			return mkdirSync(outFolder)
-		}
-	})
-	.catch(err => console.error(err))*/
-
-
+	.catch(err => {throw new Error(err)})
 
 walk(
   base,
-  (filePath, cb) => {
-		let fileName = path.parse(filePath);
-		let destination = newFolderFiles(destinations, outFolder, fileName);
-		copyFile(filePath, path.join(destination, fileName.base), err => {
-			if (err){
-				return cb(err);
-			}
-			if(deleteFolder){
-				unlink(filePath)
-					.then(err => {
-						cb(err);				
-					})
-			} else {
-				cb(err);
-			}
-		})
+  (filePath) => {
+		return new Promise ((resolve, reject) => {
+			let fileName = path.parse(filePath);
+			let destination = newFolderFiles(destinations, outFolder, fileName);
+			copyFile(filePath, path.join(destination, fileName.base))
+				.then(() => {
+					if(deleteFolder){
+						unlink(filePath)
+							.then(() => resolve())
+							.catch((err) => reject(err))
+					} else {
+						resolve();
+					}
+				})
+				.catch((err) => reject(err))
+			})
   },
   dir => {
-		if(deleteFolder){
-			rmdir(dir)
-				.catch( err => {
-				console.log("Error: ", err);
-			})
-		}
+		return new Promise((resolve, reject) =>{
+			if(deleteFolder){
+				rmdir(dir)
+					.then(() => resolve())
+					.catch((err) => reject(err));
+			}
+		}) 
   },
-  err => {
-    console.log("Error: ", err);
-  }
 );
-
-
-
