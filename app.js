@@ -18,7 +18,7 @@ if(process.argv.length <= 2){
 
 let base = process.argv[2]; //имя директории
 let outFolder = process.argv[3] || 'outResult'; //конечная папка
-let deleteFolder = process.argv[4] || true; 
+let deleteFolder = process.argv[4] || false; 
 
 exists(outFolder)
 	.then(data => {
@@ -53,6 +53,8 @@ walk(
 				rmdir(dir)
 					.then(() => resolve())
 					.catch((err) => reject(err));
+			} else {
+				resolve();
 			}
 		}) 
   },

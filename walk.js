@@ -19,7 +19,6 @@ export default function walk (dir, callbackOnFile, callbackOnFolder) {
 								callbackOnFolder
 							);
 						} else {
-							console.log('sollllllllllllll')
 							await callbackOnFile(filePath);
 						}							
 					})
