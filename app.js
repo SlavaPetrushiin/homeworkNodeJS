@@ -18,7 +18,7 @@ if(process.argv.length <= 2){
 
 let base = process.argv[2]; //имя директории
 let outFolder = process.argv[3] || 'outResult'; //конечная папка
-let deleteFolder = process.argv[4] || false; 
+let deleteFolder = process.argv[4] || true; 
 
 exists(outFolder)
 	.then(data => {
@@ -50,6 +50,7 @@ walk(
   dir => {
 		return new Promise((resolve, reject) =>{
 			if(deleteFolder){
+				console.log('dir ' + dir)
 				rmdir(dir)
 					.then(() => resolve())
 					.catch((err) => reject(err));
