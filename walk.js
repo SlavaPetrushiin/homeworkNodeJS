@@ -7,10 +7,10 @@ const stat = util.promisify(fs.stat);
 export default function walk (dir, callbackOnFile, callbackOnFolder) {
 	return new Promise((resolve, reject) => {
 		readdir(dir)
-		.then(async directory => {
+		.then(directory => {
 			return Promise.all(directory.map(async item => {
 				let filePath = path.join(dir, item);
-				stat(filePath)
+				await stat(filePath)
 					.then(async stats => {
 						if (stats && stats.isDirectory()) {
 							await walk(

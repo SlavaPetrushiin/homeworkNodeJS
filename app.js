@@ -50,7 +50,6 @@ walk(
   dir => {
 		return new Promise((resolve, reject) =>{
 			if(deleteFolder){
-				console.log('dir ' + dir)
 				rmdir(dir)
 					.then(() => resolve())
 					.catch((err) => reject(err));
